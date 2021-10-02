@@ -5,8 +5,6 @@
 $ sudo pip3 install pyserial
 """
 
-import sys
-import time
 import serial
 import threading
 
