@@ -1,8 +1,7 @@
 # GL-3 (Mechanical scanning 2D LiDAR)
 
 ## Guide
-* Installation
-
+- Installation
 Install dependencies
 ```
 $ pip3 install -r requirements.txt
