@@ -8,8 +8,6 @@ $ sudo pip3 install pyserial
 import serial
 import threading
 
-import numpy as np
-
 
 # class Protocol(object):
 #     """\

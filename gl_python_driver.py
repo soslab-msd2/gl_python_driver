@@ -2,10 +2,11 @@
 
 import sys
 import time
-import numpy as np
 
+import numpy as np
 import serial
 import serial_comm
+import cv2
 
 
 PS1             = 0xC3
@@ -195,7 +196,7 @@ class GL(object):
                 pulse_width = data[i*4+4]&0xff
                 pulse_width = pulse_width | ((data[i*4+5]&0xff)<<8)
 
-                if distance>30000:
+                if distance>25000:
                     distance = 0.0
                     
                 dist_array[i] = distance/1000.0
@@ -331,13 +332,13 @@ class GL(object):
         pulse_array = frame_data[1]
         angle_array = frame_data[2]
 
-        # for i in range(len(dist_array)-1):
-        #     if dist_array[i]>0.0 and dist_array[i+1]>0.0:
-        #         diff = (dist_array[i] - dist_array[i+1]) / 2.0
-        #         if diff>0.01*dist_array[i]:
-        #             dist_array[i] = 0.0
-        #         if diff<-0.01*dist_array[i]:
-        #             dist_array[i] = 0.0
+        for i in range(len(dist_array)-1):
+            if dist_array[i]>0.0 and dist_array[i+1]>0.0:
+                diff = (dist_array[i] - dist_array[i+1]) / 2.0
+                if diff>0.01*dist_array[i]:
+                    dist_array[i] = 0.0
+                if diff<-0.01*dist_array[i]:
+                    dist_array[i] = 0.0
             
         return dist_array, pulse_array, angle_array
 
@@ -359,6 +360,10 @@ class GL(object):
 # main
 if __name__ == '__main__':
 
+    vis_max_distance = 10.0
+    vis_width = 1000
+    vis_height = 500
+
     ser = serial.serial_for_url('/dev/ttyUSB0', baudrate=921600, timeout=0)
     with serial_comm.ReaderThread(ser, GL) as serial_gl:
         try:
@@ -366,14 +371,28 @@ if __name__ == '__main__':
             print('Serial Num : ' + serial_gl.GetSerialNum())
             serial_gl.SetFrameDataEnable(True)
 
-            start = time.time()
+            img_view = np.zeros((vis_height,vis_width,3), np.uint8)
             while True:
                 distance, pulse_width, angle = serial_gl.ReadFrameData()
 
                 if distance.shape[0]>0 and pulse_width.shape[0]>0 and angle.shape[0]>0:
-                    print(1/(time.time()-start))
-                    start = time.time()
-                time.sleep(0.0125)
+                    img_view = np.zeros((vis_height,vis_width,3), np.uint8)
+
+                    x = distance*np.cos(angle)
+                    y = distance*np.sin(angle)
+                    
+                    img_x = x*vis_width/vis_max_distance + vis_width/2
+                    img_y = y*vis_height/vis_max_distance
+
+                    for i in range(distance.shape[0]):
+                        if img_x[i]>=0 and img_x[i]<vis_width and img_y[i]>=0 and img_y[i]<vis_height:
+                            img_view[int(img_y[i]), int(img_x[i]), 2]= 255
+                    img_view = cv2.flip(img_view, 0)
+                
+                # time.sleep(0.001)
+                cv2.imshow('lidar_img',img_view)
+                cv2.waitKey(1)
+                
         except KeyboardInterrupt:
             serial_gl.SetFrameDataEnable(False)
             print('End GL Python Driver')

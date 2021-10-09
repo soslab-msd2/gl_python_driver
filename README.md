@@ -3,9 +3,9 @@
 ## Guide
 * Installation
 
-Install 'pyserial'
+Install dependencies
 ```
-$ sudo pip3 install pyserial
+$ pip3 install -r requirements.txt
 ```
 and download 'gl_python_driver' from git
 ```
