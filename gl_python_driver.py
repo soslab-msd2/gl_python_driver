@@ -361,9 +361,9 @@ class GL(object):
 if __name__ == '__main__':
 
     vis_max_distance = 10.0
-    vis_width = 1000
     vis_height = 500
-
+    vis_width = vis_height*2
+    
     ser = serial.serial_for_url('/dev/ttyUSB0', baudrate=921600, timeout=0)
     with serial_comm.ReaderThread(ser, GL) as serial_gl:
         try:

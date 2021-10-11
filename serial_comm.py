@@ -76,7 +76,7 @@ class ReaderThread(threading.Thread):
     def run(self):
         """Reader loop"""
         if not hasattr(self.serial, 'cancel_read'):
-            self.serial.timeout = 1
+            self.serial.timeout = 0
         self.protocol = self.protocol_factory()
         try:
             self.protocol.connection_made(self)
